@@ -29,28 +29,48 @@
 
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
+                android:layout_height="match_parent"
                 android:layout_marginLeft="11dp"
                 android:layout_marginTop="0dp"
                 android:background="@drawable/brief_row_background" >
 
-        		<!-- This is the Huodong main part -->
 
-                <TextView
-                    android:id="@+id/textViewContent"
+                	<TextView
+                    android:id="@+id/tucao_content"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentLeft="true"
                     android:layout_centerVertical="true"
                     android:layout_marginLeft="5dp"
-                    android:text="TextView" />
+                    android:text="" />
+                
+                    <ImageView
+                        android:id="@+id/tucao_image"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:adjustViewBounds="true"
+                     	android:contentDescription=""
+                        android:padding="0dp"
+                        android:scaleType="centerCrop"/>
 
+                    <ImageView
+                        android:id="@+id/tucao_play"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_centerHorizontal="true"
+                        android:layout_centerVertical="true"
+                        android:adjustViewBounds="true"
+                        android:padding="0dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/play" />
+					
                 </RelativeLayout>
                 <ImageView
                      android:layout_width="13dp"
                      android:layout_height="24dp"
                      android:layout_marginTop="5dp"
                      android:src="@drawable/brief_row_triangle" />
+                
 
 			</RelativeLayout>
         

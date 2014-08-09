@@ -3,7 +3,6 @@ package com.shuwang.yuanditucao.util;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +17,9 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.ExifInterface;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -31,17 +32,19 @@ import com.shuwang.yuanditucao.Const;
 public class ImageUtil {
 
 	private String SDPATH;
-	private final static String TAG = "ImageUtil";
+	private final static String TAG = "TuCao.ImageUtil";
 	private HashMap<Object, SoftReference<Drawable>> imageCache;
 	private static ImageUtil instance;
+	public static int screenWidth;
+	public static int screenHeight;
 
 	public ImageUtil(Context context) {
 		this();
-		imageCache = new HashMap<Object, SoftReference<Drawable>>();
 	}
 
 	public ImageUtil() {
 		SDPATH = Environment.getExternalStorageDirectory() + "/";
+		imageCache = new HashMap<Object, SoftReference<Drawable>>();
 	}
 
 	public static ImageUtil getInstance(Context context) {
@@ -58,6 +61,7 @@ public class ImageUtil {
 	public File creatSDDir(File dirName) {
 		File dir = new File(dirName, SDPATH);
 		dir.mkdirs();
+		Log.i(TAG,"image dir was created.");
 		return dir;
 	}
 
@@ -67,31 +71,8 @@ public class ImageUtil {
 		return file;
 	}
 
-	public File createImageFile() throws IOException {
-		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
-				.format(new Date());
-		String imageFileName = Const.JPEG_FILE_PREFIX + timeStamp + "_";
-		File imageF = File.createTempFile(imageFileName,
-				Const.JPEG_FILE_SUFFIX, new File(getAlbumDir()));
-		return imageF;
-	}
-
-	private static String albumDir = null;
-	public static String getAlbumDir() {
-		if(albumDir!=null) return albumDir;
-		File dir = new File(Environment.getExternalStorageDirectory(),
-				Const.APP_HOME_PATH + "/" + Const.IMAGE_PATH);
-		if (dir != null) {
-			if (!dir.mkdirs()) {
-				if (!dir.exists()) {
-					Log.e(TAG, "Image Path:" + dir.getPath());
-					return null;
-				}
-			}
-		}
-		albumDir = dir.getAbsolutePath();
-		return albumDir;
-	}
+	
+	
 
 	public String getSDPATH() {
 		return SDPATH;
@@ -170,6 +151,13 @@ public class ImageUtil {
 		return savePhotoFromCamera(smallBitmap, isSmall);
 	}
 
+	private String imagePath = null;
+	private String getAlbumDir(){
+		if(this.imagePath==null)
+			this.imagePath = Util.getAppDir("pictures");
+		return this.imagePath;
+	}
+	
 	public boolean write2SD(String fileName, InputStream input) {
 		File file = null;
 		OutputStream output = null;
@@ -234,39 +222,51 @@ public class ImageUtil {
 		try {
 			File image = new File(getAlbumDir(), imageFileName);
 			if (!image.exists()) {
-				Log.e(TAG, "图片锟斤拷锟斤拷失锟杰ｏ拷图片锟斤拷锟斤拷锟节ｏ拷" + image.getAbsolutePath());
-				return null;
-			}
-			FileInputStream is = new FileInputStream(image);
-
-			Drawable d = Drawable.createFromStream(is, "src");
-			// 锟斤拷锟斤拷OOM锟斤拷锟解，锟斤拷锟斤拷锟斤拷锟斤拷锟絟ttp://www.cnblogs.com/RayLee/archive/2010/11/09/1872856.html
-			// | http://yangguangfu.iteye.com/blog/1050445
-			// BitmapFactory.Options opts = new BitmapFactory.Options();
-			// opts.inJustDecodeBounds = true;
-			// opts.inSampleSize = computeSampleSize(opts, -1, 128*128);
-			// opts.inJustDecodeBounds = false;
-			// Drawable d = null;
-			// try{
-			// d = Drawable.createFromResourceStream(null,null, is,"src", opts);
-			// } catch (OutOfMemoryError err) {
-			// Log.e(TAG,"锟接憋拷锟截硷拷锟斤拷图片锟斤拷锟斤拷锟节达拷锟斤拷锟斤拷锟斤拷锟�+imageFileName);
-			// return null;
-			// }finally{
-			// //锟斤拷锟斤拷一锟斤拷要锟斤拷锟斤拷锟斤拷锟矫伙拷false锟斤拷锟斤拷为之前锟斤拷锟角斤拷锟斤拷锟斤拷锟矫筹拷锟斤拷true
-			// opts.inJustDecodeBounds = false;
-			// }
-
-			if (d == null) {
-				Log.e(TAG, "锟斤拷锟斤拷图片失锟杰ｏ拷锟斤拷锟轿猲ull锟斤拷" + imageFileName);
+				Log.e(TAG, "The picture does not exist:" + image.getAbsolutePath());
 				return null;
 			}
 
-			is.close();
-			return d;
+			//inJustDecodeBounds = true
+			//通过设置BitmapFactory.Options的inJustDecodeBounds属性设置为true，
+			//可以解码避免内存分配，返回的Bitmap为空，但返回outWidth，outHeight和outMimeType。
+			//这种技术使您可以读取的图像数据的尺寸和类型在内存分配之前。
+			BitmapFactory.Options bmpFactoryOptions = new BitmapFactory.Options();
+	    	bmpFactoryOptions.inJustDecodeBounds = true;
+	    	//获得大小
+	    	BitmapFactory.decodeFile(this.getPhotoFullName(imageFileName), bmpFactoryOptions);
+
+            
+	    	//我们需要的是800作为基准，甭管最大是多大的，都缩成800
+	    	int heightRatio = (int)Math.ceil(bmpFactoryOptions.outHeight/ImageUtil.screenHeight);
+	    	int widthRatio = (int)Math.ceil(bmpFactoryOptions.outWidth/ImageUtil.screenWidth);
+	    	if (heightRatio > 0 && widthRatio > 0){ 
+	    		if (heightRatio > widthRatio) {  
+	    			// Height ratio is larger, scale according to it  
+	    			bmpFactoryOptions.inSampleSize = heightRatio; 
+	    		} else {  // Width ratio is larger, scale according to it  
+	    			bmpFactoryOptions.inSampleSize = widthRatio;
+	    		}
+	    	}
+	    	Log.d(TAG, "Resize ratio is:"+bmpFactoryOptions.inSampleSize);
+	    	
+	    	//
+	    	bmpFactoryOptions.inJustDecodeBounds = false;
+	    	Bitmap bmp = BitmapFactory.decodeFile(this.getPhotoFullName(imageFileName), bmpFactoryOptions);
+	    	
+	    	ExifInterface ei = new ExifInterface(image.getAbsolutePath());
+	    	int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+	    	if(orientation==ExifInterface.ORIENTATION_ROTATE_90){ 
+	    		Log.d(TAG,"the picture need to rotate 90'");
+		    	Matrix matrix = new Matrix();
+		    	matrix.postRotate(90);	
+		    	Bitmap rotatedBMP = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(),bmp.getHeight(),matrix,false);
+		    	bmp.recycle();//别忘了释放了，防止内存泄漏
+		    	bmp = rotatedBMP;
+	    	}
+	    	return new BitmapDrawable(bmp);
 		} catch (Exception e) {
 			Log
-					.e(TAG, "锟接憋拷锟截硷拷锟斤拷图片[" + imageFileName + "]失锟杰ｏ拷" + e.toString());
+					.e(TAG, "Exception when loading image[" + imageFileName + "]:" + e.toString());
 			return null;
 		}
 	}
@@ -381,17 +381,14 @@ public class ImageUtil {
 	 */
 	public Drawable setImageDrawable(Object key, int type) {
 		if(key==null) {
-			Log.e(TAG,"图锟今缓筹拷锟終ey值为NULL");
+			Log.e(TAG,"key值为NULL");
 			return null;
 		}
 		Drawable drawable = null;
 		if (imageCache.containsKey(key)) {
 			SoftReference<Drawable> softReference = imageCache.get(key);
 			drawable = softReference.get();
-			Log.d(TAG, "锟矫碉拷锟斤拷锟斤拷锟叫的讹拷锟斤拷 = "+drawable);
-			Log.d(TAG, "锟矫碉拷锟斤拷锟斤拷锟叫的讹拷锟斤拷锟斤拷锟斤拷 = "+type);
 			if (drawable != null) {
-				Log.d(TAG, "锟斤拷示锟斤拷锟斤拷锟叫碉拷图片");
 				return drawable;
 			}
 		}
@@ -409,17 +406,7 @@ public class ImageUtil {
         return getAlbumDir()+"/"+imageFileName;
     }
 
-    public boolean initFilePath() {
-            File path = new File(getAlbumDir());
-            try {
-                creatSDDir(path);
-                return true;
-            } catch (Exception e) {
-            	e.printStackTrace();
-                Log.e(TAG,"锟斤拷SD锟斤拷锟斤拷写锟侥硷拷失锟杰ｏ拷dir:["+ getAlbumDir()+"] :"+e.getMessage());
-                return false;
-            }
-    }
+    
 
     public Bitmap loadPhotoFromSD(String imageFileName) {
     	BitmapFactory.Options bmpFactoryOptions = new BitmapFactory.Options();

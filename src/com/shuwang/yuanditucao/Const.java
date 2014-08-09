@@ -9,7 +9,7 @@ public class Const {
     public static final String TYPE_MOOD = "mood";
     public static final String HTTP_GET = "GET";
     public static final String HTTP_UPLOAD_IMAGE_KEY = "image";
-    public static final String APP_HOME_PATH = "paozhoumo";
+    public static final String APP_HOME_PATH = "yuanditucao";
     public static final String IMAGE_PATH = "pictures";
     public static final String JPEG_FILE_PREFIX = "paozhoumo";
     public static final String JPEG_FILE_SUFFIX = ".jpg";
@@ -140,4 +140,5 @@ public class Const {
 	public static final String HUODONG__CREATE_TO_CONTACTERACTIVITY = "huodong_create";
 	public static final String HUODONG_EDIT_TO_CONTACTERACTIVITY = "huodong_edit";
 	public static final String ACTIVITY_HUODONG = "huodong";
+	public static final String SOUND_PATH = "audio";
 }
