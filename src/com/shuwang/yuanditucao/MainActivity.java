@@ -29,11 +29,16 @@ import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
+import com.baidu.mapapi.map.BitmapDescriptor;
+import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.Marker;
+import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationData;
+import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.shuwang.yuanditucao.RecordImageView.OnFinishedRecordListener;
 import com.shuwang.yuanditucao.entity.TuCao;
@@ -85,9 +90,7 @@ public class MainActivity extends Activity implements OnClickListener,OnTouchLis
 		fileUtil = new ImageUtil();
 		
 		
-		List<TuCao> items = new ArrayList<TuCao>();
-				
-		
+		this.items = new ArrayList<TuCao>();
 		ListView listView = (ListView)findViewById(R.id.listview);
 		tucaoAdapter = new TuCaoAdapter(this,items);
 		listView.setAdapter(tucaoAdapter);
@@ -98,6 +101,9 @@ public class MainActivity extends Activity implements OnClickListener,OnTouchLis
 		
 		addFooterButtonsListener();
 	}
+	
+	private List<TuCao> items;
+	
 	
 	private TuCaoAdapter tucaoAdapter;
 	private RecordImageView recordView;
@@ -124,7 +130,21 @@ public class MainActivity extends Activity implements OnClickListener,OnTouchLis
 	}
 	
 	private void updateListView(){
-		this.updateListView();//通知界面刷新
+		this.tucaoAdapter.notifyDataSetChanged();//通知界面刷新
+		
+		for(TuCao t : this.items){
+			Log.d(TAG,"baidu is displaying PIN:("+t.latitude+","+t.longitude+")");
+			
+			LatLng llA = new LatLng(t.latitude, t.longitude);
+			LayoutInflater flater = LayoutInflater.from(this);
+			View view = flater.inflate(R.layout.baidu_pin, null);
+			BitmapDescriptor bdA = BitmapDescriptorFactory.fromView(view);
+			OverlayOptions ooA = new MarkerOptions().position(llA).icon(bdA)
+					.zIndex(9);
+			Marker mMarkerA = (Marker) (mBaiduMap.addOverlay(ooA));
+			
+			
+		}
 		
 	}
 	
