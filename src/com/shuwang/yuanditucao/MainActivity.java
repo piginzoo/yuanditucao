@@ -1,12 +1,16 @@
 package com.shuwang.yuanditucao;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Point;
+import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -19,8 +23,10 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.baidu.location.BDLocation;
@@ -29,8 +35,11 @@ import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
+import com.baidu.mapapi.map.BaiduMap.OnMarkerClickListener;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
+import com.baidu.mapapi.map.InfoWindow;
+import com.baidu.mapapi.map.InfoWindow.OnInfoWindowClickListener;
 import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
@@ -87,7 +96,7 @@ public class MainActivity extends Activity implements OnClickListener,OnTouchLis
 		
 		//new WebSocketHelper().connect();
 		
-		fileUtil = new ImageUtil();
+		this.imageUtil = new ImageUtil();
 		
 		
 		this.items = new ArrayList<TuCao>();
@@ -100,7 +109,69 @@ public class MainActivity extends Activity implements OnClickListener,OnTouchLis
 		initRecordButton();
 		
 		addFooterButtonsListener();
+		
+		mBaiduMap.setOnMarkerClickListener(new OnMarkerClickListener() {
+			public boolean onMarkerClick(final Marker marker) {
+
+				LayoutInflater flater = LayoutInflater.from(MainActivity.this);
+				View view = flater.inflate(R.layout.baidu_pop, null);
+
+				final LatLng ll = marker.getPosition();
+				Point p = mBaiduMap.getProjection().toScreenLocation(ll);
+				p.y -= 47;
+				LatLng llInfo = mBaiduMap.getProjection().fromScreenLocation(p);
+				Bundle tucaoData = marker.getExtraInfo();
+
+				//装载文字内容
+				if(tucaoData.getString("cotent")!=null){
+					TextView t = (TextView)view.findViewById(R.id.tucao_content);
+					t.setText(tucaoData.getString("content"));
+				//装在对一个对应的图片
+				}else if(tucaoData.getString("image")!=null){
+					String imgPath = tucaoData.getString("image");
+					Log.d(TAG,"load image:"+imgPath);
+					Drawable d = MainActivity.this.imageUtil.loadImagePATH(imgPath);
+					ImageView imageView = (ImageView)view.findViewById(R.id.tucao_image);
+					imageView.setImageDrawable(d);
+				//装载声音
+				}else if(tucaoData.getString("sound")!=null){
+					ImageView soundView = (ImageView)view.findViewById(R.id.tucao_play);
+					soundView.setTag(tucaoData.getString("sound"));
+					soundView.setOnClickListener(new OnClickListener(){  
+		                @Override  
+		                public void onClick(View v) {
+		                	String soundFileName = (String)v.getTag();
+		                	MediaPlayer mp=new MediaPlayer();
+		                    try {
+		                    	String soundPath = Util.getAppDir("audio")+"/"+soundFileName;
+								mp.setDataSource(soundPath);
+								Log.d(TAG,"play sound:"+soundPath);
+								mp.prepare();
+								mp.start();	
+							} catch (IOException e) {
+								Log.e(TAG,"Play sound error:"+e.toString());
+							}
+		                }
+					});
+				}
+				
+				OnInfoWindowClickListener listener = 
+					new OnInfoWindowClickListener() {
+						public void onInfoWindowClick() {
+							
+						}
+					};
+
+				InfoWindow mInfoWindow = new InfoWindow(view, llInfo, listener);
+				mBaiduMap.showInfoWindow(mInfoWindow);
+
+				return true;
+			}
+		});
 	}
+	
+	private ImageUtil imageUtil;
+	
 	
 	private List<TuCao> items;
 	
@@ -114,7 +185,6 @@ public class MainActivity extends Activity implements OnClickListener,OnTouchLis
 		findViewById(R.id.footer_btn_record).setOnTouchListener(this);		
 	}
 	
-	private ImageUtil fileUtil;
 	private String TAG = "TuCao";
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		Log.i(TAG, "onActivityResult 调用");
@@ -142,8 +212,24 @@ public class MainActivity extends Activity implements OnClickListener,OnTouchLis
 			OverlayOptions ooA = new MarkerOptions().position(llA).icon(bdA)
 					.zIndex(9);
 			Marker mMarkerA = (Marker) (mBaiduMap.addOverlay(ooA));
+			Bundle b = new Bundle();
+			String key = null,value = null;
+			if(t.content!=null){
+				key="content";
+				value = t.content;
+			}else if(t.imagePath!=null){
+				key="image";
+				value = t.imagePath;
+			}else if(t.soundPath!=null){
+				key="sound";
+				value = t.soundPath;
+			}else{
+				Log.e(TAG,"no content, no sound, no image, illegal data for baidu pin!");
+				return;
+			}
 			
-			
+			b.putString(key, value);
+			mMarkerA.setExtraInfo(b);
 		}
 		
 	}
@@ -238,6 +324,7 @@ public class MainActivity extends Activity implements OnClickListener,OnTouchLis
 					Log.d(TAG,"sound file name:"+fileName);
 					tucao.soundPath = fileName;//这里仅保存文件名就可以了，不存全路径
 					MainActivity.this.tucaoAdapter.insert(tucao,0);
+					MainActivity.this.updateListView();
 				}
 			});	
 	}
