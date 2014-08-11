@@ -25,19 +25,20 @@ public final class R {
     }
     public static final class drawable {
         public static final int baidu_pin=0x7f020000;
-        public static final int brief_row_background=0x7f020001;
-        public static final int brief_row_triangle=0x7f020002;
-        public static final int button_camera=0x7f020003;
-        public static final int button_record=0x7f020004;
-        public static final int button_say=0x7f020005;
-        public static final int huodong_point=0x7f020006;
-        public static final int ic_launcher=0x7f020007;
-        public static final int mic_2=0x7f020008;
-        public static final int mic_3=0x7f020009;
-        public static final int mic_4=0x7f02000a;
-        public static final int mic_5=0x7f02000b;
-        public static final int play=0x7f02000c;
-        public static final int round_background=0x7f02000d;
+        public static final int baidu_pop_background=0x7f020001;
+        public static final int brief_row_background=0x7f020002;
+        public static final int brief_row_triangle=0x7f020003;
+        public static final int button_camera=0x7f020004;
+        public static final int button_record=0x7f020005;
+        public static final int button_say=0x7f020006;
+        public static final int huodong_point=0x7f020007;
+        public static final int ic_launcher=0x7f020008;
+        public static final int mic_2=0x7f020009;
+        public static final int mic_3=0x7f02000a;
+        public static final int mic_4=0x7f02000b;
+        public static final int mic_5=0x7f02000c;
+        public static final int play=0x7f02000d;
+        public static final int round_background=0x7f02000e;
     }
     public static final class id {
         public static final int MainView=0x7f090000;
@@ -54,10 +55,10 @@ public final class R {
         public static final int footer_text=0x7f09000e;
         public static final int listview=0x7f090002;
         public static final int main_timeline_row=0x7f090006;
-        public static final int one_picture=0x7f090007;
-        public static final int tucao_content=0x7f090008;
-        public static final int tucao_image=0x7f090009;
-        public static final int tucao_play=0x7f09000a;
+        public static final int one_picture=0x7f09000a;
+        public static final int tucao_content=0x7f090007;
+        public static final int tucao_image=0x7f090008;
+        public static final int tucao_play=0x7f090009;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;

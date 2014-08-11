@@ -10,15 +10,6 @@
          	android:layout_height="wrap_content">		 	
             <!-- 左面的头像 -->
 
-            <ImageView
-                android:id="@+id/one_picture"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentTop="true"
-                android:scaleType="centerCrop"
-                android:src="@drawable/huodong_point" />
-
 		</RelativeLayout>
 
 		<RelativeLayout 
@@ -32,7 +23,7 @@
                 android:layout_height="match_parent"
                 android:layout_marginLeft="11dp"
                 android:layout_marginTop="0dp"
-                android:background="@drawable/brief_row_background" >
+                android:background="@drawable/baidu_pop_background" >
 
 
                 	<TextView
@@ -65,11 +56,6 @@
                         android:src="@drawable/play" />
 					
                 </RelativeLayout>
-                <ImageView
-                     android:layout_width="13dp"
-                     android:layout_height="24dp"
-                     android:layout_marginTop="5dp"
-                     android:src="@drawable/brief_row_triangle" />
                 
 
 			</RelativeLayout>
